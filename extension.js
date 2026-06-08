@@ -63,7 +63,8 @@ function updateStatusBar(active) {
 function relaunchIDE() {
   if (process.platform === 'win32') {
     try {
-      cp.spawn(process.execPath, ['--remote-debugging-port=9333'], {
+      // Run detached cmd shell to wait 1 second before opening, allowing current instance to exit
+      cp.spawn('cmd', ['/c', `timeout /t 1 /nobreak >nul && "${process.execPath}" --remote-debugging-port=9333`], {
         detached: true,
         stdio: 'ignore'
       }).unref();
@@ -77,8 +78,8 @@ function relaunchIDE() {
       appPath = match[1];
     }
 
-    // Spawn the new instance with debugging enabled
-    cp.exec(`open -a "${appPath}" --args --remote-debugging-port=9333`, (err) => {
+    // Run detached shell with sleep delay to allow current instance to fully exit
+    cp.exec(`(sleep 1.2 && open -a "${appPath}" --args --remote-debugging-port=9333) &`, (err) => {
       if (err) {
         vscode.window.showErrorMessage(`Failed to launch IDE on macOS: ${err.message}`);
       }
