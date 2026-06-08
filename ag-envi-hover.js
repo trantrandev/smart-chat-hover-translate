@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.24.2";
+  const VERSION = "0.24.3";
   const existing = window.__agEnviHover;
   if (existing?.version === VERSION) {
     return;

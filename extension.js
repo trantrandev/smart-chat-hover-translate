@@ -61,18 +61,29 @@ function updateStatusBar(active) {
 }
 
 function relaunchIDE() {
-  let appPath = "/Applications/Antigravity IDE.app";
-  const match = process.execPath.match(/(.*\/Antigravity IDE\.app)/);
-  if (match && match[1]) {
-    appPath = match[1];
-  }
-
-  // Spawn the new instance with debugging enabled
-  cp.exec(`open -a "${appPath}" --args --remote-debugging-port=9333`, (err) => {
-    if (err) {
-      vscode.window.showErrorMessage(`Failed to launch IDE: ${err.message}`);
+  if (process.platform === 'win32') {
+    try {
+      cp.spawn(process.execPath, ['--remote-debugging-port=9333'], {
+        detached: true,
+        stdio: 'ignore'
+      }).unref();
+    } catch (err) {
+      vscode.window.showErrorMessage(`Failed to launch IDE on Windows: ${err.message}`);
     }
-  });
+  } else {
+    let appPath = "/Applications/Antigravity IDE.app";
+    const match = process.execPath.match(/(.*\/Antigravity IDE\.app)/);
+    if (match && match[1]) {
+      appPath = match[1];
+    }
+
+    // Spawn the new instance with debugging enabled
+    cp.exec(`open -a "${appPath}" --args --remote-debugging-port=9333`, (err) => {
+      if (err) {
+        vscode.window.showErrorMessage(`Failed to launch IDE on macOS: ${err.message}`);
+      }
+    });
+  }
 
   // Quit current session
   vscode.commands.executeCommand('workbench.action.quit');
