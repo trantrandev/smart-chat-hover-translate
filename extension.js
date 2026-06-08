@@ -77,10 +77,12 @@ function updateStatusBar(active) {
 }
 
 function relaunchIDE() {
+  const parentPid = process.pid;
+
   if (process.platform === 'win32') {
     try {
-      // Run detached cmd shell to wait 1 second before opening, allowing current instance to exit
-      cp.spawn('cmd', ['/c', `timeout /t 1 /nobreak >nul && "${process.execPath}" --remote-debugging-port=9333`], {
+      // Run detached PowerShell cmd to wait until parent process PID exits before spawning the new instance
+      cp.spawn('powershell', ['-Command', `while (Get-Process -Id ${parentPid} -ErrorAction SilentlyContinue) { Start-Sleep -Milliseconds 100 }; Start-Process '${process.execPath}' -ArgumentList '--remote-debugging-port=9333'`], {
         detached: true,
         stdio: 'ignore'
       }).unref();
@@ -94,8 +96,8 @@ function relaunchIDE() {
       appPath = match[1];
     }
 
-    // Run detached shell with sleep delay to allow current instance to fully exit
-    cp.exec(`(sleep 1.2 && open -a "${appPath}" --args --remote-debugging-port=9333) &`, (err) => {
+    // Run detached shell with PID check loop to allow current instance to fully exit
+    cp.exec(`(while kill -0 ${parentPid} 2>/dev/null; do sleep 0.1; done && open -a "${appPath}" --args --remote-debugging-port=9333) &`, (err) => {
       if (err) {
         vscode.window.showErrorMessage(`Failed to launch IDE on macOS: ${err.message}`);
       }
