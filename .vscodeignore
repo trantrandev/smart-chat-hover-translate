@@ -1,0 +1,8 @@
+.git
+.vscode
+*.sh
+*.command
+HANDOFF.md
+runtime-injector.mjs
+test-google.js
+.vscodeignore
