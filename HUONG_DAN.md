@@ -1,11 +1,11 @@
 # Hướng Dẫn Kích Hoạt Dịch Thuật Giao Diện Chat (Hover Translate) Trên Antigravity IDE
 
-Tài liệu này hướng dẫn cách chạy và sử dụng tính năng dịch thuật thông minh (di chuột dịch tiếng Anh sang tiếng Việt) trong phần Chat của Antigravity IDE trên macOS một cách ổn định nhất.
+Tài liệu này hướng dẫn cách chạy và sử dụng tính năng dịch thuật thông minh (di chuột dịch tiếng Anh sang tiếng Việt) trong phần Chat của Antigravity IDE trên macOS và Windows một cách ổn định nhất.
 
 ---
 
 ## 📌 Nguyên lý hoạt động
-Do cơ chế bảo mật của macOS (Code Signing), chúng ta **không thể chỉnh sửa trực tiếp các file hệ thống** của Antigravity IDE (nếu sửa, ứng dụng sẽ bị báo hỏng). 
+Do cơ chế bảo mật của IDE và hệ điều hành, chúng ta **không chỉnh sửa trực tiếp các file hệ thống** của Antigravity IDE (nếu sửa, ứng dụng có thể bị báo hỏng).
 
 Giải pháp duy nhất là **kích hoạt cổng gỡ lỗi (cổng 9333)** khi mở IDE, để extension hoặc script chạy ngầm có thể "bơm" (inject) mã nguồn dịch thuật vào cửa sổ Chat.
 
@@ -29,9 +29,14 @@ Trước khi gỡ VSIX, chạy:
 
 `Smart Translate: Remove Automatic Startup`
 
+Helper tự động theo hệ điều hành:
+
+- macOS: dùng LaunchAgent và file `auto-relaunch-monitor.sh`.
+- Windows: dùng Startup folder của người dùng và file `auto-relaunch-monitor.ps1` chạy ẩn bằng PowerShell, không cần quyền Admin.
+
 ---
 
-### Cách 2: Sử dụng Script chạy ngầm (Không cần cài VSIX)
+### Cách 2: Sử dụng Script chạy ngầm (Không cần cài VSIX, chủ yếu cho macOS/dev)
 Nếu bạn không muốn cài đặt extension VSIX:
 
 1. **Tắt hoàn toàn Antigravity IDE** (`Cmd + Q`).
@@ -48,7 +53,7 @@ Nếu bạn không muốn cài đặt extension VSIX:
 
 ---
 
-## 🚀 Cách tạo phím tắt mở IDE nhanh (Không cần gõ lệnh lại)
+## 🚀 Cách tạo phím tắt mở IDE nhanh trên macOS (Không cần gõ lệnh lại)
 
 Trong thư mục này đã có sẵn launcher:
 
@@ -60,7 +65,7 @@ Bạn có thể kéo app này vào Dock và dùng nó thay icon Antigravity gố
 
 ## 🔁 Cài helper thủ công
 
-VSIX phiên bản mới tự cài helper hoàn toàn. Các lệnh dưới đây chỉ dùng để sửa lỗi hoặc phát triển:
+VSIX phiên bản mới tự cài helper hoàn toàn. Các lệnh dưới đây chỉ dùng để sửa lỗi hoặc phát triển trên macOS:
 
 ```bash
 cd /duong-dan/den/ag-chat-envi-hover

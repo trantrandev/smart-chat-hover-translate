@@ -14,7 +14,8 @@ Smart context-aware hover-translation extension for the Antigravity IDE chat / A
 - **Dynamic Status Bar Item**:
   - `Smart Translate: Active` when active.
   - Shows `Waiting`, then a restart countdown when the debug port is not enabled.
-- **Zero-Click Setup on macOS**: Installing the VSIX automatically configures startup support. No launcher, script, or confirmation is required.
+- **Zero-Click Setup on macOS and Windows**: Installing the VSIX automatically configures startup support. No launcher, script, or confirmation is required.
+- **Platform-Specific Helpers**: macOS uses a LaunchAgent helper. Windows uses the current user's Startup folder plus a hidden PowerShell helper. No administrator permission is required.
 - **Visible Automatic Restart Countdown**: Before enabling translation port `9333`, the extension warns that Antigravity will restart and shows a 10-second countdown. No button click is required.
 - **Shortcut Toggle**: Press `Option + T` (macOS) inside the IDE to toggle the translation tool on/off at any time.
 
@@ -26,7 +27,7 @@ Smart context-aware hover-translation extension for the Antigravity IDE chat / A
    - Download the latest `smart-chat-hover-translate-x.x.x.vsix` file from the **Releases** section of this repository.
 2. **Install in Antigravity IDE**:
    - Open Antigravity IDE.
-   - Open the **Extensions** panel (`Cmd + Shift + X`).
+   - Open the **Extensions** panel (`Cmd + Shift + X` on macOS, `Ctrl + Shift + X` on Windows).
    - Click the triple-dot menu (`...`) in the top-right of the Extensions panel.
    - Select **Install from VSIX...**
    - Choose the downloaded `.vsix` file.
@@ -40,6 +41,11 @@ Smart context-aware hover-translation extension for the Antigravity IDE chat / A
 
 Before uninstalling the VSIX, run **`Smart Translate: Remove Automatic Startup`** from the Command Palette.
 
+Platform notes:
+
+- macOS: the extension installs a LaunchAgent and copies `auto-relaunch-monitor.sh`.
+- Windows: the extension adds a hidden launcher to the current user's Startup folder and copies `auto-relaunch-monitor.ps1` into `%APPDATA%\Smart Chat Hover Translate`. It does not require administrator permission.
+
 ---
 
 ## Tiếng Việt
@@ -52,7 +58,8 @@ Bộ tiện ích mở rộng dịch thuật thông minh theo ngữ cảnh khi di
 - **Nút trạng thái thông minh dưới Status Bar**:
   - Hiển thị **`Smart Translate: Active`** khi hoạt động.
   - Hiển thị **`Waiting`**, sau đó đếm ngược khi cổng dịch chưa bật.
-- **Tự thiết lập hoàn toàn trên macOS**: Cài VSIX xong là dùng; không cần launcher, chạy script hoặc bấm xác nhận.
+- **Tự thiết lập hoàn toàn trên macOS và Windows**: Cài VSIX xong là dùng; không cần launcher, chạy script hoặc bấm xác nhận.
+- **Helper tách riêng theo hệ điều hành**: macOS dùng LaunchAgent. Windows dùng Startup folder của người dùng và PowerShell helper chạy ẩn, không cần quyền Admin.
 - **Thông báo trước khi tự restart**: Trước khi bật cổng dịch `9333`, extension thông báo rõ và đếm ngược 10 giây. Người dùng không cần bấm gì.
 - **Phím tắt bật/tắt nhanh**: Nhấn **`Option + T`** trong giao diện IDE để bật hoặc tắt tính năng dịch bất cứ lúc nào.
 
@@ -64,7 +71,7 @@ Bộ tiện ích mở rộng dịch thuật thông minh theo ngữ cảnh khi di
    - Tải tệp tin `smart-chat-hover-translate-x.x.x.vsix` mới nhất từ mục **Releases** của kho lưu trữ GitHub này.
 2. **Cài đặt vào Antigravity IDE**:
    - Mở Antigravity IDE.
-   - Vào mục quản lý **Extensions** (`Cmd + Shift + X`).
+   - Vào mục quản lý **Extensions** (`Cmd + Shift + X` trên macOS, `Ctrl + Shift + X` trên Windows).
    - Nhấp vào biểu tượng ba chấm **`...`** ở góc trên bên phải thanh quản lý.
    - Chọn **Install from VSIX...**
    - Chọn tệp tin `.vsix` vừa tải về.
@@ -77,6 +84,11 @@ Bộ tiện ích mở rộng dịch thuật thông minh theo ngữ cảnh khi di
    - Trạng thái **`Smart Translate: Active`** nghĩa là tính năng dịch đã sẵn sàng.
 
 Trước khi gỡ VSIX, mở Command Palette và chạy **`Smart Translate: Remove Automatic Startup`** để gỡ helper hoàn toàn.
+
+Ghi chú theo hệ điều hành:
+
+- macOS: extension tự cài LaunchAgent và copy `auto-relaunch-monitor.sh`.
+- Windows: extension tự thêm launcher chạy ẩn vào Startup folder của người dùng và copy `auto-relaunch-monitor.ps1` vào `%APPDATA%\Smart Chat Hover Translate`, không cần quyền Admin.
 
 ---
 

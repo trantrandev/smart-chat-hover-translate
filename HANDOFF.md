@@ -16,7 +16,7 @@ The UX target is similar to EnVi Dictionary:
 Current version:
 
 ```text
-0.30.1
+0.31.10
 ```
 
 This version is used by:
@@ -24,7 +24,7 @@ This version is used by:
 ```text
 package.json
 ag-envi-hover.js
-smart-chat-hover-translate-0.30.1.vsix
+smart-chat-hover-translate-0.31.10.vsix
 ```
 
 ## Main Files
@@ -48,11 +48,58 @@ VSIX extension entrypoint. It:
 - Creates a status bar item.
 - Polls CDP targets on `127.0.0.1:9333`.
 - Injects `ag-envi-hover.js` into Antigravity workbench pages.
-- Can relaunch Antigravity with remote debugging enabled.
+- Requests a relaunch through the platform helper when remote debugging is not enabled.
 - Clicks status bar item to call `window.__agEnviHover.toggleEnabled()` in active targets.
 - Automatically installs or refreshes startup support after VSIX activation.
-- Copies the helper to `~/Library/Application Support/Smart Chat Hover Translate`.
 - Provides commands to install or remove automatic startup.
+
+```text
+auto-helper.js
+```
+
+Small platform switcher. It calls the macOS helper on macOS and the Windows
+helper on Windows.
+
+```text
+auto-helper-mac.js
+auto-relaunch-monitor.sh
+```
+
+macOS-only automatic startup path. It installs a LaunchAgent, copies
+`auto-relaunch-monitor.sh` to:
+
+```text
+~/Library/Application Support/Smart Chat Hover Translate
+```
+
+The helper watches `/tmp/ag-envi-hover-relaunch-request` and opens Antigravity
+with:
+
+```bash
+--remote-debugging-address=127.0.0.1 --remote-debugging-port=9333
+```
+
+```text
+auto-helper-windows.js
+auto-relaunch-monitor.ps1
+```
+
+Windows-only automatic startup path. It creates a hidden `.vbs` launcher in:
+
+```text
+%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup
+```
+
+It copies `auto-relaunch-monitor.ps1` to:
+
+```text
+%APPDATA%\Smart Chat Hover Translate
+```
+
+The PowerShell helper watches `%TEMP%\ag-envi-hover-relaunch-request`, starts
+hidden, and relaunches Antigravity with port `9333`. This path does not require
+administrator permission. Uninstall also removes the legacy Scheduled Task if
+one exists from version `0.31.0`.
 
 ```text
 ag-envi-hover.js
@@ -70,7 +117,7 @@ Runtime userscript injected into Antigravity pages. It handles:
 - localStorage cache.
 
 ```text
-smart-chat-hover-translate-0.30.1.vsix
+smart-chat-hover-translate-0.31.10.vsix
 ```
 
 Packaged extension artifact.
@@ -81,6 +128,7 @@ launch-runtime.sh
 Start Antigravity EnVi Hover.command
 Antigravity EnVi Hover.app
 auto-relaunch-monitor.sh
+auto-relaunch-monitor.ps1
 install-auto-helper.sh
 uninstall-auto-helper.sh
 ```
@@ -130,21 +178,23 @@ Earlier direct patching caused a corrupt installation warning. Use either:
 Install:
 
 ```text
-smart-chat-hover-translate-0.30.1.vsix
+smart-chat-hover-translate-0.31.10.vsix
 ```
 
-On activation, the extension installs the LaunchAgent helper automatically.
-If port `9333` is not active, the extension displays a notification and a
+On activation, the extension installs the platform helper automatically.
+On macOS this is a LaunchAgent. On Windows this is a current-user Startup
+launcher plus a hidden PowerShell monitor. If port `9333` is not active, the extension displays a notification and a
 10-second status bar countdown before restarting Antigravity automatically. No
 button, confirmation, launcher, or shell command is required.
 
 For the actual reopen, the extension writes:
 
 ```text
-/tmp/ag-envi-hover-relaunch-request
+/tmp/ag-envi-hover-relaunch-request on macOS
+%TEMP%\ag-envi-hover-relaunch-request on Windows
 ```
 
-Then the LaunchAgent helper handles opening Antigravity with port `9333`. This
+Then the platform helper handles opening Antigravity with port `9333`. This
 is important because after `workbench.action.quit`, the extension host is gone
 and cannot reliably spawn the next IDE process itself.
 
@@ -354,7 +404,7 @@ npm ls --depth=0
 Inspect VSIX contents:
 
 ```bash
-unzip -l smart-chat-hover-translate-0.30.1.vsix
+unzip -l smart-chat-hover-translate-0.31.10.vsix
 ```
 
 Check whether Antigravity debug port is open:

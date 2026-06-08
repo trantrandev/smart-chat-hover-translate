@@ -4,6 +4,7 @@
 Antigravity EnVi Hover.app/**
 *.sh
 !auto-relaunch-monitor.sh
+!auto-relaunch-monitor.ps1
 *.command
 HANDOFF.md
 runtime-injector.mjs
