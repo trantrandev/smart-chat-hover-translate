@@ -105,3 +105,24 @@ If you want to build and package the extension yourself:
    ```bash
    npx @vscode/vsce package
    ```
+
+## Troubleshooting
+
+### Windows: check restart log
+
+```powershell
+Get-Content "$env:TEMP\ag-envi-hover-fallback-relaunch.log" -Tail 20
+
+```
+
+### Windows: check translation port
+
+```powershell
+Invoke-WebRequest "http://127.0.0.1:9333/json/version" -UseBasicParsing
+```
+
+### Remove automatic startup helper
+
+Before uninstalling the VSIX, run this command from Command Palette:
+
+`Smart Translate: Remove Automatic Startup`
