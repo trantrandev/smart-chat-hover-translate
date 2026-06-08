@@ -1,17 +1,118 @@
-# Antigravity Chat EnVi Hover - Handoff
+# Smart Chat Hover Translate - Handoff
 
 ## Goal
 
-Build a runtime hover-translation tool for the Antigravity IDE chat / Agent Manager UI.
+Build and continue a hover-translation tool for the Antigravity IDE chat / Agent Manager UI.
 
-The behavior should feel like the Chrome EnVi dictionary extension:
+The UX target is similar to EnVi Dictionary:
 
-- Hover English text in the Antigravity chat.
-- Show a small Vietnamese tooltip.
-- Do not affect the code editor hover.
-- Do not modify Antigravity app files directly.
+- Hover English text in Antigravity chat.
+- Show a compact Vietnamese tooltip.
+- Do not affect code editor hovers.
+- Avoid modifying Antigravity app files directly.
 
-## Important Constraint
+## Current State
+
+Current version:
+
+```text
+0.30.1
+```
+
+This version is used by:
+
+```text
+package.json
+ag-envi-hover.js
+smart-chat-hover-translate-0.30.1.vsix
+```
+
+## Main Files
+
+```text
+package.json
+```
+
+VS Code / Antigravity extension manifest. Package name:
+
+```text
+smart-chat-hover-translate
+```
+
+```text
+extension.js
+```
+
+VSIX extension entrypoint. It:
+
+- Creates a status bar item.
+- Polls CDP targets on `127.0.0.1:9333`.
+- Injects `ag-envi-hover.js` into Antigravity workbench pages.
+- Can relaunch Antigravity with remote debugging enabled.
+- Clicks status bar item to call `window.__agEnviHover.toggleEnabled()` in active targets.
+- Automatically installs or refreshes startup support after VSIX activation.
+- Copies the helper to `~/Library/Application Support/Smart Chat Hover Translate`.
+- Provides commands to install or remove automatic startup.
+
+```text
+ag-envi-hover.js
+```
+
+Runtime userscript injected into Antigravity pages. It handles:
+
+- Hover detection.
+- Text extraction.
+- Vietnamese-skip filtering.
+- Translation backend calls.
+- Tooltip UI.
+- Click-to-expand.
+- `Option + T` toggle.
+- localStorage cache.
+
+```text
+smart-chat-hover-translate-0.30.1.vsix
+```
+
+Packaged extension artifact.
+
+```text
+runtime-injector.mjs
+launch-runtime.sh
+Start Antigravity EnVi Hover.command
+Antigravity EnVi Hover.app
+auto-relaunch-monitor.sh
+install-auto-helper.sh
+uninstall-auto-helper.sh
+```
+
+Standalone runtime-injection path, useful without installing VSIX.
+
+`Antigravity EnVi Hover.app` is a macOS launcher wrapper. It opens Antigravity
+with the required CDP debug port and can be dragged into the Dock for daily use.
+If Antigravity is already open without the debug port, it prompts the user to
+quit and relaunch.
+
+The auto helper path installs a LaunchAgent that watches for Antigravity opened
+without CDP port `9333`. In silent mode it relaunches Antigravity with:
+
+```bash
+--remote-debugging-address=127.0.0.1 --remote-debugging-port=9333
+```
+
+Install/uninstall:
+
+```bash
+./install-auto-helper.sh
+./uninstall-auto-helper.sh
+```
+
+```text
+install.sh
+```
+
+Old direct-patch installer. Do not use for normal operation because modifying Antigravity app files can trigger a corrupt installation warning.
+
+## Safe Runtime Constraint
 
 Do not patch files inside:
 
@@ -19,148 +120,136 @@ Do not patch files inside:
 /Applications/Antigravity IDE.app
 ```
 
-Earlier direct HTML patching caused Antigravity to show a corrupt installation warning. The current approach uses runtime injection through Chrome DevTools Protocol instead.
+Earlier direct patching caused a corrupt installation warning. Use either:
 
-## Project Path
+- VSIX extension + debug port, or
+- standalone runtime injector + debug port.
 
-```text
-/Users/ttran/Documents/Codex/2026-06-08/b-n-bi-t-t-i/outputs/ag-chat-envi-hover
-```
+## How To Run - VSIX Path
 
-## Current Version
-
-Current userscript version:
+Install:
 
 ```text
-0.24.0
+smart-chat-hover-translate-0.30.1.vsix
 ```
 
-Defined in:
+On activation, the extension installs the LaunchAgent helper automatically.
+If port `9333` is not active, the extension displays a notification and a
+10-second status bar countdown before restarting Antigravity automatically. No
+button, confirmation, launcher, or shell command is required.
+
+For the actual reopen, the extension writes:
 
 ```text
-ag-envi-hover.js
+/tmp/ag-envi-hover-relaunch-request
 ```
 
-## Files
+Then the LaunchAgent helper handles opening Antigravity with port `9333`. This
+is important because after `workbench.action.quit`, the extension host is gone
+and cannot reliably spawn the next IDE process itself.
 
-```text
-ag-envi-hover.js
-```
+Antigravity does not necessarily activate a newly installed VSIX in the current
+running session. If it does not, automatic setup begins on the next normal IDE
+launch; no manual setup action is required.
 
-Main runtime userscript injected into Antigravity. Handles hover detection, text extraction, translation, tooltip UI, cache, hotkey toggle, and click-to-expand behavior.
-
-```text
-runtime-injector.mjs
-```
-
-Connects to Antigravity through Chrome DevTools Protocol on port `9333` and injects `ag-envi-hover.js` into the Antigravity workbench pages.
-
-```text
-launch-runtime.sh
-```
-
-Launches Antigravity with remote debugging enabled and starts `runtime-injector.mjs`.
-
-```text
-Start Antigravity EnVi Hover.command
-```
-
-Double-click launcher for macOS. Runs `launch-runtime.sh`.
-
-```text
-README.md
-```
-
-User-facing instructions.
-
-```text
-install.sh
-```
-
-Old direct-patch installer. It is disabled by default because direct patching triggers Antigravity's corrupt installation warning. Do not use it unless intentionally debugging direct patch mode.
-
-```text
-uninstall.sh
-```
-
-Removes old direct-patch changes if they were applied.
-
-## How To Run
-
-Quit Antigravity first, then run:
+Then make sure Antigravity is launched with:
 
 ```bash
-cd /Users/ttran/Documents/Codex/2026-06-08/b-n-bi-t-t-i/outputs/ag-chat-envi-hover
+--remote-debugging-address=127.0.0.1 --remote-debugging-port=9333
+```
+
+Best daily workflow:
+
+```text
+Antigravity EnVi Hover.app
+```
+
+Drag that launcher app to the Dock and use it instead of the original
+Antigravity icon. If the status bar says relaunch is needed, click it and accept
+the relaunch prompt.
+
+Most automatic workflow:
+
+```bash
+./install-auto-helper.sh
+```
+
+After this, the user can open Antigravity from the original icon. The helper will
+relaunch it with port `9333` when needed.
+
+## How To Run - Standalone Path
+
+Quit Antigravity first, then:
+
+```bash
+cd /path/to/ag-chat-envi-hover
 ./launch-runtime.sh
 ```
 
-Alternative:
-
-Double-click:
+Or double-click:
 
 ```text
 Start Antigravity EnVi Hover.command
 ```
 
-Keep the launcher terminal open while using Antigravity.
+For a Finder/Dock-friendly launcher, double-click:
 
-## Current Behavior
+```text
+Antigravity EnVi Hover.app
+```
 
-### Hover Translation
+Keep the terminal open while using the standalone injector.
 
-Hovering English text in the Antigravity chat shows a small Vietnamese tooltip.
+## Current Hover Behavior
 
-The hover text extraction currently translates only the local clause up to a comma or sentence boundary. For example:
+Hover translates English text in chat.
+
+The current extraction behavior translates only the local clause up to a comma, punctuation boundary, newline, or dash boundary.
+
+Example:
 
 ```text
 Let's translate their request first, then translate our answer...
 ```
 
-Hovering within the first clause translates only:
+Hovering in the first clause should translate only:
 
 ```text
 Let's translate their request first
 ```
 
-This was requested explicitly because translating the whole sentence was too long and covered too much of the chat.
+This was explicitly requested. Do not change it back to translating whole sentences unless asked.
 
-### Vietnamese Text
+## Vietnamese Skip Behavior
 
-If the hovered text is Vietnamese, it should not translate.
+The script should not translate Vietnamese text.
 
-The script checks for Vietnamese marks such as:
+It checks Vietnamese marks such as:
 
 ```text
 ă â đ ê ô ơ ư á à ả ã ạ ...
 ```
 
-It also skips text with a high ratio of non-ASCII characters.
+It also skips text with too many non-ASCII characters.
 
-### Tooltip UI
+## Tooltip UX
 
-Current tooltip design:
+Current tooltip:
 
-- Shows only the Vietnamese translation.
-- Does not show the English source text.
-- Font is small, dictionary-like.
-- Max width is small.
-- Tooltip prefers to appear above the hovered word.
-- Tooltip has a small caret/arrow pointing toward the hovered word.
-- Tooltip is anchored to the bounding box of the hovered word, not just raw mouse coordinates.
-- If there is not enough room above, it appears below.
-- Tooltip position is clamped so it should not spill into the sidebar.
-
-### Long Translations
-
-Long translations are collapsed by default.
-
-If the translation is long:
-
-- Hover shows a short preview.
-- Click the tooltip to expand.
+- Shows only Vietnamese translation.
+- Does not show the English source line.
+- Small EnVi-like font.
+- Neutral dark/graphite background.
+- Has a caret/arrow.
+- Prefers to appear above the hovered word.
+- Falls below only when there is not enough room above.
+- Anchors to the hovered word bounding box.
+- Is clamped so it does not spill into sidebar/margins.
+- Long translations show a preview first.
+- Click tooltip to expand.
 - Click again to collapse.
 
-### Hotkey Toggle
+## Hotkeys And Runtime API
 
 Inside Antigravity:
 
@@ -170,241 +259,131 @@ Option + T
 
 toggles hover translation on/off.
 
-A small status toast appears:
+The userscript exposes:
 
-```text
-Hover translate: on
-Hover translate: off
+```js
+window.__agEnviHover.version
+window.__agEnviHover.dispose()
+window.__agEnviHover.toggleEnabled()
+window.__agEnviHover.setEnabled(boolean)
+window.__agEnviHover.enabled
 ```
 
-The enabled/disabled state is stored in localStorage:
+This is important because `extension.js` calls:
 
-```text
-ag-envi-hover:enabled
+```js
+window.__agEnviHover?.toggleEnabled?.()
 ```
 
-### Cache
+## Storage
 
-Translations are cached in localStorage for 30 days.
+Toggle state:
 
-Cache prefix:
+```text
+localStorage["ag-envi-hover:enabled"]
+```
+
+Translation cache prefix:
 
 ```text
 ag-envi-hover:
+```
+
+Cache TTL:
+
+```text
+30 days
 ```
 
 ## Translation Backend
 
 Current order:
 
-1. Small local dictionary for common developer terms.
-2. Google Translate public endpoint:
+1. Local developer dictionary for a small set of terms.
+2. Context-aware Google Translate call:
+   - Finds the target clause inside surrounding context.
+   - Wraps target as `[target]`.
+   - Sends the wrapped context to translation.
+   - Extracts translated content from brackets/parentheses.
+3. Plain Google Translate fallback.
+4. MyMemory fallback.
+
+Important: bracket extraction can fail if Google Translate removes or moves brackets. In that case the code falls back to plain target translation.
+
+## Known Risk / Next Work
+
+The biggest technical risk is bracket-wrapping extraction reliability.
+
+Possible improvements:
+
+- Use stronger marker tokens that translation engines preserve better.
+- Try multiple marker styles.
+- Detect failed extraction more carefully.
+- Add a local/AI backend that can translate only `TARGET` using `CONTEXT`.
+
+Prompt idea for a better AI backend:
 
 ```text
-https://translate.googleapis.com/translate_a/single
+Translate only TARGET into natural Vietnamese.
+Use CONTEXT only to understand meaning.
+Do not translate CONTEXT.
+
+CONTEXT: ...
+TARGET: ...
 ```
-
-3. MyMemory fallback:
-
-```text
-https://api.mymemory.translated.net/get
-```
-
-Privacy note: hovered or selected English text may be sent to those services.
-
-## Current UX Decisions
-
-These decisions were made after testing screenshots and user feedback:
-
-- Do not show the tooltip below by default because it blocks the next lines of chat.
-- Do not use a blue background because it looks too much like a separate component.
-- Use a neutral graphite/dark tooltip that blends with Antigravity's dark UI but remains readable.
-- Do not show the English source line because it makes the tooltip feel bulky.
-- Keep font small like EnVi dictionary.
-- Do not translate Vietnamese text.
-- Do not translate entire sentences when the user expects only up to comma.
-- Do not make tooltip follow the mouse continuously. It should appear after hover delay.
-
-## Bugs Already Fixed
-
-### Antigravity Corrupt Warning
-
-Directly patching `workbench-jetski-agent.html` caused Antigravity to warn that the install was corrupt.
-
-Fix: runtime injection through CDP instead of modifying app files.
-
-### Trusted Types Error
-
-Using `innerHTML` failed because Antigravity requires TrustedHTML assignment.
-
-Fix: build tooltip DOM using `createElement` and `textContent`.
-
-### Wrong Target Window
-
-Initial injector only targeted `workbench-jetski-agent.html`.
-
-Fix: also inject into `workbench.html`, while ignoring code editor areas.
-
-### Tooltip Jumping
-
-Tooltip used to follow the cursor too aggressively.
-
-Fix: increased hover delay and removed continuous repositioning behavior.
-
-### Tooltip Anchored To Wrong Word
-
-Tooltip sometimes appeared near a previous word because of sticky radius logic.
-
-Fix: removed sticky radius and anchor tooltip using the hovered word's bounding box.
-
-### Tooltip Too Large
-
-Tooltip used to become a large translation block.
-
-Fix: smaller max width, smaller font, preview text, and click-to-expand.
-
-### Tooltip Blocking Text Below
-
-Tooltip below the cursor blocked the next lines of chat.
-
-Fix: prefer displaying above the hovered word.
 
 ## Verification Commands
 
 Run from:
 
 ```bash
-cd /Users/ttran/Documents/Codex/2026-06-08/b-n-bi-t-t-i/outputs/ag-chat-envi-hover
+cd /path/to/ag-chat-envi-hover
 ```
 
 Then:
 
 ```bash
 node --check ag-envi-hover.js
+node --check extension.js
 node --check runtime-injector.mjs
 bash -n launch-runtime.sh
 bash -n "Start Antigravity EnVi Hover.command"
+npm ls --depth=0
 ```
 
-## Current Implementation Notes
+Inspect VSIX contents:
 
-### Important Functions In `ag-envi-hover.js`
-
-```text
-install()
+```bash
+unzip -l smart-chat-hover-translate-0.30.1.vsix
 ```
 
-Creates tooltip, installs listeners, stores version.
+Check whether Antigravity debug port is open:
 
-```text
-onMouseMove(event)
+```bash
+curl http://127.0.0.1:9333/json/list
 ```
 
-Starts delayed hover detection.
+## Packaging
 
-```text
-translateAtPoint(clientX, clientY)
-```
+The `.vscodeignore` excludes standalone runtime scripts except
+`auto-relaunch-monitor.sh`, which the VSIX needs for automatic startup setup.
 
-Gets selected text or hovered clause, validates whether to translate, calls translation backend, then shows tooltip.
+Current VSIX includes:
 
-```text
-getHoverRequestAtPoint(clientX, clientY)
-```
+- `package.json`
+- `extension.js`
+- `ag-envi-hover.js`
+- `README.md`
+- `HUONG_DAN.md`
+- `auto-relaunch-monitor.sh`
+- `node_modules/ws`
 
-Finds the text node under the cursor, extracts the hover clause, and calculates the anchor point from the hovered word's bounding box.
+## Notes From Latest Audit
 
-```text
-extractHoverClause(rawText, rawOffset)
-```
+Latest audit found and fixed one issue:
 
-Extracts clause up to comma, punctuation, newline, or dash boundary.
+- `extension.js` tried to call `window.__agEnviHover.toggleEnabled()`.
+- `ag-envi-hover.js` previously did not expose `toggleEnabled`.
+- Fixed by exposing `toggleEnabled`, `setEnabled`, and `enabled` in `window.__agEnviHover`.
 
-```text
-shouldTranslate(text)
-```
-
-Skips non-English/Vietnamese-looking text.
-
-```text
-showTooltip(...)
-```
-
-Stores tooltip state and renders it.
-
-```text
-renderTooltip()
-```
-
-Displays preview or expanded text.
-
-```text
-positionTooltip(clientX, clientY)
-```
-
-Positions tooltip, preferring above the anchor point.
-
-```text
-toggleEnabled()
-```
-
-Toggles hover translation with `Option + T`.
-
-## Suggested Next Work
-
-### Best Next Improvement
-
-Improve translation naturalness without translating past the comma.
-
-Current Google Translate output can still feel machine-like. But the user explicitly wants only up to comma, not whole sentence. Possible improvement:
-
-- Keep `sourceText` as the comma-limited clause.
-- Add optional nearby context only as hidden context if using an AI/local translation backend.
-- Return translation only for the clause.
-
-This is hard with raw Google Translate because it does not support "context but only translate this span" cleanly.
-
-### Possible Better Backend
-
-Use a local or API translation endpoint that supports instructions:
-
-```text
-Translate only TARGET into natural Vietnamese.
-Use CONTEXT only to understand meaning.
-Do not translate CONTEXT.
-```
-
-For example:
-
-```text
-CONTEXT: ... full sentence ...
-TARGET: Let's translate their request first
-```
-
-Return only Vietnamese for TARGET.
-
-### UI Tuning Still Possible
-
-If the tooltip still feels slightly off:
-
-- Tune `hoverDelayMs`.
-- Tune `gap` in `positionTooltip()`.
-- Tune `max-width`.
-- Tune font size.
-- Tune background opacity.
-
-Current values are intentionally conservative and dictionary-like.
-
-### Packaging
-
-The current setup works but is still a local runtime injector. Future packaging ideas:
-
-- Make a small menu-bar app.
-- Make a persistent background launcher.
-- Add a config JSON file.
-- Add a simple enable/disable UI.
-
-## Do Not Forget
-
-Never use direct patch mode unless explicitly debugging. Runtime injection is the safe path.
-
+Current debug port was not open during audit, so runtime injection could not be verified live.

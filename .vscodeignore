@@ -1,6 +1,9 @@
 .git
 .vscode
+.gitignore
+Antigravity EnVi Hover.app/**
 *.sh
+!auto-relaunch-monitor.sh
 *.command
 HANDOFF.md
 runtime-injector.mjs

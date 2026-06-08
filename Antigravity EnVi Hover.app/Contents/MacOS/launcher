@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PORT="${AG_ENVI_DEBUG_PORT:-9333}"
+APP_PATH="${AG_ENVI_APP_PATH:-}"
+APP_NAMES=("Antigravity IDE" "Antigravity")
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+LOG_FILE="/tmp/ag-envi-hover-launcher.log"
+INJECTOR_LOG="/tmp/ag-envi-hover-injector.log"
+
+log() {
+  printf '[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*" >> "$LOG_FILE"
+}
+
+find_app_path() {
+  if [[ -n "$APP_PATH" && -d "$APP_PATH" ]]; then
+    printf '%s\n' "$APP_PATH"
+    return 0
+  fi
+
+  local candidate
+  for candidate in \
+    "/Applications/Antigravity IDE.app" \
+    "/Applications/Antigravity.app" \
+    "$HOME/Applications/Antigravity IDE.app" \
+    "$HOME/Applications/Antigravity.app"; do
+    if [[ -d "$candidate" ]]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+debug_port_is_up() {
+  curl -sS --max-time 0.6 "http://127.0.0.1:$PORT/json/version" >/dev/null 2>&1
+}
+
+antigravity_is_running() {
+  pgrep -f 'Antigravity.*Contents/MacOS' >/dev/null 2>&1
+}
+
+ask_relaunch() {
+  osascript <<'APPLESCRIPT' 2>/dev/null || true
+set dialogResult to display dialog "Antigravity dang mo nhung chua co cong dich 9333. Quit va mo lai bang EnVi Hover?" buttons {"Cancel", "Relaunch"} default button "Relaunch" cancel button "Cancel"
+button returned of dialogResult
+APPLESCRIPT
+}
+
+quit_antigravity() {
+  local app_name
+  for app_name in "${APP_NAMES[@]}"; do
+    osascript -e "tell application \"$app_name\" to quit" >/dev/null 2>&1 || true
+  done
+
+  local i
+  for i in $(seq 1 100); do
+    if ! antigravity_is_running; then
+      return 0
+    fi
+    sleep 0.2
+  done
+}
+
+launch_with_debug() {
+  local app_path="$1"
+  log "Launching $app_path with debug port $PORT"
+  open -a "$app_path" --args \
+    --remote-debugging-address=127.0.0.1 \
+    --remote-debugging-port="$PORT"
+}
+
+start_injector_if_needed() {
+  local injector="$PROJECT_DIR/runtime-injector.mjs"
+  if [[ ! -f "$injector" ]]; then
+    return 0
+  fi
+
+  if pgrep -f "$injector" >/dev/null 2>&1; then
+    log "Runtime injector already running"
+    return 0
+  fi
+
+  log "Starting runtime injector"
+  (
+    cd "$PROJECT_DIR"
+    nohup node "$injector" >> "$INJECTOR_LOG" 2>&1 &
+  )
+}
+
+main() {
+  local app_path
+  if ! app_path="$(find_app_path)"; then
+    osascript -e 'display alert "Cannot find Antigravity app" message "Expected /Applications/Antigravity IDE.app or /Applications/Antigravity.app."' >/dev/null 2>&1 || true
+    exit 1
+  fi
+
+  if debug_port_is_up; then
+    log "Debug port already up; focusing Antigravity"
+    open -a "$app_path"
+    start_injector_if_needed
+    exit 0
+  fi
+
+  if antigravity_is_running; then
+    local answer
+    answer="$(ask_relaunch)"
+    if [[ "$answer" != "Relaunch" ]]; then
+      log "Relaunch cancelled"
+      exit 0
+    fi
+    log "Quitting running Antigravity before relaunch"
+    quit_antigravity
+    sleep 1
+  fi
+
+  launch_with_debug "$app_path"
+  start_injector_if_needed
+}
+
+main "$@"

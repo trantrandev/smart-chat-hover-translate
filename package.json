@@ -2,7 +2,7 @@
   "name": "smart-chat-hover-translate",
   "displayName": "Smart Chat Hover Translate",
   "description": "Smart context-aware hover-translation for Antigravity IDE chat UI",
-  "version": "0.25.1",
+  "version": "0.30.1",
   "publisher": "trantrandev",
   "engines": {
     "vscode": "^1.60.0"
@@ -11,14 +11,22 @@
     "Other"
   ],
   "activationEvents": [
-    "onStartupFinished"
+    "*"
   ],
   "main": "./extension.js",
   "contributes": {
     "commands": [
       {
         "command": "smart-chat-hover-translate.click",
-        "title": "Smart Translate: Toggle Translation / Relaunch"
+        "title": "Smart Translate: Toggle Translation"
+      },
+      {
+        "command": "smart-chat-hover-translate.installAutoHelper",
+        "title": "Smart Translate: Install Automatic Startup"
+      },
+      {
+        "command": "smart-chat-hover-translate.uninstallAutoHelper",
+        "title": "Smart Translate: Remove Automatic Startup"
       }
     ]
   },

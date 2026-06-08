@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.25.1";
+  const VERSION = "0.30.1";
   const existing = window.__agEnviHover;
   if (existing?.version === VERSION) {
     return;
@@ -89,7 +89,15 @@
     document.addEventListener("scroll", onScroll, true);
     document.addEventListener("keydown", onKeyDown, true);
     document.documentElement.dataset.agEnviHover = VERSION;
-    window.__agEnviHover = { version: VERSION, dispose };
+    window.__agEnviHover = {
+      version: VERSION,
+      dispose,
+      toggleEnabled,
+      setEnabled,
+      get enabled() {
+        return enabled;
+      },
+    };
   }
 
   function dispose() {

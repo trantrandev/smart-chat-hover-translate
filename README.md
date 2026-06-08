@@ -12,8 +12,10 @@ Smart context-aware hover-translation extension for the Antigravity IDE chat / A
 - **Hover Translation**: Hover over English text inside the Antigravity Chat or Agent Manager to view the translated meaning instantly in a small, clean tooltip.
 - **Context-Aware Accuracy**: The extension uses bracket-wrapping (`[target]`) on full sentence/paragraph structures before sending to Google Translate, ensuring grammatically correct, context-specific translations.
 - **Dynamic Status Bar Item**:
-  - `Smart Translate: On` (Green) when active.
-  - `Smart Translate: Off` (Orange) when the debug port is not enabled. Click the status bar item to automatically relaunch Antigravity IDE with the correct debug arguments.
+  - `Smart Translate: Active` when active.
+  - Shows `Waiting`, then a restart countdown when the debug port is not enabled.
+- **Zero-Click Setup on macOS**: Installing the VSIX automatically configures startup support. No launcher, script, or confirmation is required.
+- **Visible Automatic Restart Countdown**: Before enabling translation port `9333`, the extension warns that Antigravity will restart and shows a 10-second countdown. No button click is required.
 - **Shortcut Toggle**: Press `Option + T` (macOS) inside the IDE to toggle the translation tool on/off at any time.
 
 ---
@@ -29,8 +31,14 @@ Smart context-aware hover-translation extension for the Antigravity IDE chat / A
    - Select **Install from VSIX...**
    - Choose the downloaded `.vsix` file.
 3. **Activate**:
-   - Look at the bottom-right status bar. If it says **`Smart Translate: Off`**, click it and select **Yes** to relaunch the IDE.
-   - Once relaunched, the status bar will change to **`Smart Translate: On`** and hover translation is active!
+   - Nothing else is required.
+   - If Antigravity does not activate the newly installed VSIX immediately, the setup runs automatically on the next normal launch.
+   - If port `9333` is not active, a notification explains that Antigravity will restart automatically after 10 seconds.
+   - The status bar shows the live countdown and Antigravity restarts automatically.
+   - Open Antigravity normally from its original icon.
+   - The status bar shows **`Smart Translate: Active`** when hover translation is ready.
+
+Before uninstalling the VSIX, run **`Smart Translate: Remove Automatic Startup`** from the Command Palette.
 
 ---
 
@@ -42,8 +50,10 @@ Bộ tiện ích mở rộng dịch thuật thông minh theo ngữ cảnh khi di
 - **Dịch khi di chuột**: Di chuột qua các cụm từ tiếng Anh trong khung Chat hoặc Agent Manager của Antigravity để xem nghĩa tiếng Việt ngay trên tooltip nhỏ gọn.
 - **Dịch chuẩn theo ngữ cảnh**: Tự động bọc từ cần dịch trong ngữ cảnh câu gốc trước khi gửi đến công cụ dịch, đảm bảo kết quả chính xác theo ngữ cảnh lập trình (ví dụ: dịch đúng từ `checkout` trong ngữ cảnh Git là *"kiểm tra"* thay vì dịch thô là *"thanh toán"*).
 - **Nút trạng thái thông minh dưới Status Bar**:
-  - Hiển thị **`Smart Translate: On`** (Màu xanh) khi hoạt động.
-  - Hiển thị **`Smart Translate: Off`** (Màu cam) khi chưa kích hoạt cổng debug. Click vào nút này để IDE tự động khởi động lại với tham số phù hợp.
+  - Hiển thị **`Smart Translate: Active`** khi hoạt động.
+  - Hiển thị **`Waiting`**, sau đó đếm ngược khi cổng dịch chưa bật.
+- **Tự thiết lập hoàn toàn trên macOS**: Cài VSIX xong là dùng; không cần launcher, chạy script hoặc bấm xác nhận.
+- **Thông báo trước khi tự restart**: Trước khi bật cổng dịch `9333`, extension thông báo rõ và đếm ngược 10 giây. Người dùng không cần bấm gì.
 - **Phím tắt bật/tắt nhanh**: Nhấn **`Option + T`** trong giao diện IDE để bật hoặc tắt tính năng dịch bất cứ lúc nào.
 
 ---
@@ -59,8 +69,14 @@ Bộ tiện ích mở rộng dịch thuật thông minh theo ngữ cảnh khi di
    - Chọn **Install from VSIX...**
    - Chọn tệp tin `.vsix` vừa tải về.
 3. **Kích hoạt**:
-   - Quan sát góc dưới bên phải màn hình. Nếu hiển thị **`Smart Translate: Off`**, hãy nhấp vào và chọn **Yes** để khởi động lại IDE.
-   - Sau khi khởi động lại, trạng thái sẽ chuyển thành **`Smart Translate: On`** và tính năng dịch đã sẵn sàng!
+   - Không cần làm thêm thao tác nào.
+   - Nếu Antigravity chưa kích hoạt VSIX ngay trong phiên hiện tại, thiết lập sẽ tự chạy ở lần mở bình thường tiếp theo.
+   - Nếu cổng `9333` chưa bật, extension thông báo Antigravity sẽ tự khởi động lại sau 10 giây.
+   - Status bar hiển thị đếm ngược và Antigravity tự khởi động lại.
+   - Mở Antigravity bằng icon gốc như bình thường.
+   - Trạng thái **`Smart Translate: Active`** nghĩa là tính năng dịch đã sẵn sàng.
+
+Trước khi gỡ VSIX, mở Command Palette và chạy **`Smart Translate: Remove Automatic Startup`** để gỡ helper hoàn toàn.
 
 ---
 
