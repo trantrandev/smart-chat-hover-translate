@@ -9,25 +9,40 @@ let statusBarItem;
 let pollTimer;
 const injectedTargets = new Set();
 let messageId = 0;
+let isConnected = false;
 
 function activate(context) {
   // Create status bar item
   statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-  statusBarItem.command = 'smart-chat-hover-translate.relaunch';
+  statusBarItem.command = 'smart-chat-hover-translate.click';
   context.subscriptions.push(statusBarItem);
   statusBarItem.show();
   updateStatusBar(false);
 
-  // Register Relaunch command
-  const relaunchDisposable = vscode.commands.registerCommand('smart-chat-hover-translate.relaunch', () => {
-    vscode.window.showInformationMessage('Relaunching Antigravity IDE with translation support...', 'Yes', 'No')
-      .then(selection => {
-        if (selection === 'Yes') {
-          relaunchIDE();
+  // Register Click command
+  const clickDisposable = vscode.commands.registerCommand('smart-chat-hover-translate.click', async () => {
+    if (isConnected) {
+      // Toggle translation instantly on all active targets
+      try {
+        const targets = await getTargets();
+        for (const target of targets) {
+          if (!isAgentTarget(target)) continue;
+          await evalInTarget(target, "window.__agEnviHover?.toggleEnabled?.()");
         }
-      });
+      } catch (err) {
+        vscode.window.showErrorMessage(`Failed to toggle translation: ${err.message}`);
+      }
+    } else {
+      // Relaunch prompt
+      vscode.window.showInformationMessage('Antigravity debug port is not enabled. Relaunch IDE with translation support?', 'Yes', 'No')
+        .then(selection => {
+          if (selection === 'Yes') {
+            relaunchIDE();
+          }
+        });
+    }
   });
-  context.subscriptions.push(relaunchDisposable);
+  context.subscriptions.push(clickDisposable);
 
   // Load the script content
   const scriptPath = path.join(context.extensionPath, 'ag-envi-hover.js');
@@ -49,12 +64,13 @@ function deactivate() {
 }
 
 function updateStatusBar(active) {
+  isConnected = active;
   if (active) {
-    statusBarItem.text = '$(check) EnVi Translate: On';
-    statusBarItem.tooltip = 'Hover translation is active. Click to relaunch IDE.';
+    statusBarItem.text = '$(translation) Smart Translate: Active';
+    statusBarItem.tooltip = 'Hover translation is running. Click to toggle translate state.';
     statusBarItem.backgroundColor = undefined;
   } else {
-    statusBarItem.text = '$(alert) EnVi Translate: Off';
+    statusBarItem.text = '$(alert) Smart Translate: Relaunch';
     statusBarItem.tooltip = 'Click to relaunch Antigravity with debugging enabled.';
     statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
   }
@@ -169,6 +185,36 @@ function inject(target, script) {
             || "unknown Runtime.evaluate exception";
           throw new Error(message);
         }
+        resolve();
+      } catch (err) {
+        reject(err);
+      } finally {
+        cleanup();
+      }
+    });
+
+    socket.on('error', (err) => {
+      reject(err);
+      cleanup();
+    });
+  });
+}
+
+function evalInTarget(target, expression) {
+  return new Promise((resolve, reject) => {
+    const socket = new WebSocket(target.webSocketDebuggerUrl);
+    const cleanup = () => {
+      socket.close();
+    };
+
+    socket.on('open', async () => {
+      try {
+        await send(socket, "Runtime.enable");
+        await send(socket, "Runtime.evaluate", {
+          expression,
+          awaitPromise: false,
+          includeCommandLineAPI: false,
+        });
         resolve();
       } catch (err) {
         reject(err);
