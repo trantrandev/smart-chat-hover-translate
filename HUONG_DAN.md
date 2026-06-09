@@ -18,9 +18,9 @@ Nếu bạn đã import file `.vsix` vào IDE:
 
 1. Không cần làm thêm thao tác nào.
 2. Nếu Antigravity chưa kích hoạt VSIX ngay, lần mở bình thường tiếp theo sẽ tự thiết lập helper.
-3. Nếu cổng dịch `9333` chưa bật, extension thông báo Antigravity sẽ tự khởi động lại sau 10 giây.
+3. Trong lần thiết lập đầu tiên, nếu cổng dịch `9333` chưa bật, extension thông báo Antigravity sẽ tự khởi động lại sau 10 giây.
 4. Status bar đếm ngược từng giây; người dùng không cần bấm gì.
-5. Mở Antigravity bằng icon gốc như bình thường.
+5. Những lần sau, mở Antigravity bằng icon gốc như bình thường. Extension đã ghi cổng `9333` vào runtime arguments nên không cần relaunch lại mỗi lần.
 6. Khi tính năng dịch hoạt động, góc dưới bên phải hiện:
    `🟢 Smart Translate: Active`
 7. Di chuột vào các đoạn tiếng Anh trong Chat để xem dịch nghĩa tiếng Việt.

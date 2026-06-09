@@ -2,7 +2,7 @@
   "name": "smart-chat-hover-translate",
   "displayName": "Smart Chat Hover Translate",
   "description": "Smart context-aware hover-translation for Antigravity IDE chat UI",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "publisher": "trantrandev",
   "engines": {
     "vscode": "^1.60.0"
@@ -31,6 +31,7 @@
     ]
   },
   "dependencies": {
+    "jsonc-parser": "^3.3.1",
     "ws": "^8.16.0"
   },
   "repository": {

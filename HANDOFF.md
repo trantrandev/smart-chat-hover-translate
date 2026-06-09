@@ -16,7 +16,7 @@ The UX target is similar to EnVi Dictionary:
 Current version:
 
 ```text
-0.31.10
+1.2.2
 ```
 
 This version is used by:
@@ -24,7 +24,7 @@ This version is used by:
 ```text
 package.json
 ag-envi-hover.js
-smart-chat-hover-translate-0.31.10.vsix
+smart-chat-hover-translate-1.2.2.vsix
 ```
 
 ## Main Files
@@ -58,7 +58,16 @@ auto-helper.js
 ```
 
 Small platform switcher. It calls the macOS helper on macOS and the Windows
-helper on Windows.
+helper on Windows. It also configures Antigravity's persistent runtime
+arguments so later normal app launches already expose port `9333`.
+
+```text
+runtime-arguments.js
+```
+
+Safely updates `~/.antigravity-ide/argv.json`, preserving JSONC comments and
+unrelated settings. It adds `remote-debugging-port: "9333"` during setup and
+removes only that managed value when automatic startup is removed.
 
 ```text
 auto-helper-mac.js
@@ -117,7 +126,7 @@ Runtime userscript injected into Antigravity pages. It handles:
 - localStorage cache.
 
 ```text
-smart-chat-hover-translate-0.31.10.vsix
+smart-chat-hover-translate-1.2.2.vsix
 ```
 
 Packaged extension artifact.
@@ -178,14 +187,18 @@ Earlier direct patching caused a corrupt installation warning. Use either:
 Install:
 
 ```text
-smart-chat-hover-translate-0.31.10.vsix
+smart-chat-hover-translate-1.2.2.vsix
 ```
 
-On activation, the extension installs the platform helper automatically.
+On activation, the extension configures Antigravity's persistent runtime
+arguments and installs the platform helper automatically.
 On macOS this is a LaunchAgent. On Windows this is a current-user Startup
-launcher plus a hidden PowerShell monitor. If port `9333` is not active, the extension displays a notification and a
-10-second status bar countdown before restarting Antigravity automatically. No
-button, confirmation, launcher, or shell command is required.
+launcher plus a hidden PowerShell monitor. If port `9333` is not active, the
+extension displays a notification and a 10-second status bar countdown before
+restarting Antigravity automatically. This restart is needed only for the first
+setup; later normal app launches inherit port `9333` from
+`~/.antigravity-ide/argv.json`. No button, confirmation, launcher, or shell
+command is required.
 
 For the actual reopen, the extension writes:
 
@@ -202,30 +215,22 @@ Antigravity does not necessarily activate a newly installed VSIX in the current
 running session. If it does not, automatic setup begins on the next normal IDE
 launch; no manual setup action is required.
 
-Then make sure Antigravity is launched with:
+The extension persists this runtime argument in
+`~/.antigravity-ide/argv.json`:
 
 ```bash
---remote-debugging-address=127.0.0.1 --remote-debugging-port=9333
+"remote-debugging-port": "9333"
 ```
 
 Best daily workflow:
 
 ```text
-Antigravity EnVi Hover.app
+Open Antigravity from its normal icon.
 ```
 
-Drag that launcher app to the Dock and use it instead of the original
-Antigravity icon. If the status bar says relaunch is needed, click it and accept
-the relaunch prompt.
-
-Most automatic workflow:
-
-```bash
-./install-auto-helper.sh
-```
-
-After this, the user can open Antigravity from the original icon. The helper will
-relaunch it with port `9333` when needed.
+After the one-time setup restart, the normal icon launches Antigravity with port
+`9333` already active. The platform helper remains as a fallback for initial
+setup and recovery.
 
 ## How To Run - Standalone Path
 
@@ -404,7 +409,7 @@ npm ls --depth=0
 Inspect VSIX contents:
 
 ```bash
-unzip -l smart-chat-hover-translate-0.31.10.vsix
+unzip -l smart-chat-hover-translate-1.2.2.vsix
 ```
 
 Check whether Antigravity debug port is open:
